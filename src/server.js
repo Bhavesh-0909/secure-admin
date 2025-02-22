@@ -2,6 +2,7 @@ import express from 'express';
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -11,10 +12,23 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 
+// Load SQL payloads from sql.txt
+const sqlPayloads = fs.readFileSync('src/sql.txt', 'utf-8').split('\n').map(line => line.trim()).filter(line => line);
+
+// Function to check for SQL injection payloads
+const isPayloadMatched = (input) => {
+  return sqlPayloads.some(payload => input.includes(payload));
+};
+
 // Vulnerable login endpoint
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
   
+  // Check for SQL injection payloads
+  if (isPayloadMatched(username) || isPayloadMatched(password)) {
+    return res.render('login', { error: 'Invalid input detected.' });
+  }
+
   // Vulnerable SQL query - DO NOT USE IN PRODUCTION!
   const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
   

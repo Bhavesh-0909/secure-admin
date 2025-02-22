@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node src/server.js",
+    "dev": "node src/setup.js && node src/server.js",
     "setup": "node src/setup.js"
   },
   "dependencies": {
